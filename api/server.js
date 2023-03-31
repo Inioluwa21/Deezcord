@@ -6,11 +6,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 console.log('starting....');
 // app.use('/', express.static('pages'));
 
-const cors = require('cors');
+// const cors = require('cors');
 
 // **** Set basic express settings **** //
 
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -23,3 +23,7 @@ var connection = mysql.createConnection({
 });
 
 connection.connect;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port http://localhost:${PORT}`);
+});
