@@ -41,6 +41,7 @@ h1 {
   background-color: #005f76;
 }
 .register-link {
+  color: #ccc;
   padding-top: 10px;
   font-size: 17px;
   text-decoration: underline;
