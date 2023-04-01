@@ -1,0 +1,47 @@
+.signInForm {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 50px;
+  background-color: #2c3333;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px rgba(202, 12, 12, 0.2);
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  margin-top: 150px;
+}
+.signInInputField {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+.signInButton {
+  margin-top: 18px;
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  background-color: #170f0f;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+h1 {
+  color: #ccc;
+}
+.signInButton:hover {
+  background-color: #005f76;
+}
+.register-link {
+  padding-top: 10px;
+  font-size: 17px;
+  text-decoration: underline;
+}
