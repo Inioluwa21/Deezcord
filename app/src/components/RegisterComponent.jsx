@@ -14,8 +14,9 @@ function RegisterComponent() {
       username: document.getElementById('userName').value,
       password: document.getElementById('password').value,
     };
-    
+
     axios.post('http://localhost:81/register', userInfo).then((response) => {});
+    goToSignInPage();
   }
   return (
     <div className="signIn">
