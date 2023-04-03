@@ -103,14 +103,38 @@ PRIMARY KEY (id)
     function (error, result) {}
   );
 }
+app.post('/test', (req, res) => {
+  console.log('CONNECTED');
+});
+app.post('/login', (req, res) => {
+  console.log('got to signin post function');
+  const username = req.body.username;
+  const password = req.body.password;
 
+  console.log(username + password);
+
+  const query = `
+    SELECT * FROM users WHERE username = ? AND password = ? LIMIT 1;
+  `;
+
+  connection.query(query, [username, password], (error, results) => {
+    if (error) {
+      console.error('Error checking for user:', error);
+      return;
+    }
+
+    if (results.length === 0) {
+      res.send('User does not exist');
+    } else {
+      res.send('User exists');
+    }
+  });
+});
 app.post('/register', (req, res) => {
   console.log('got here');
   const username = req.body.username;
   const password = req.body.password;
   const authoritylevel = 0;
-
-  console.log('the data: ' + password);
 
   var query = `INSERT INTO users (username, password, authoritylevel) VALUES
     ('${username}', '${password}', '${authoritylevel}')`;
@@ -118,6 +142,7 @@ app.post('/register', (req, res) => {
   connection.query(query, function (error, result) {
     console.log(error);
   });
+  console.log('added new user with username ' + username);
   res.send('ok ');
 });
 
