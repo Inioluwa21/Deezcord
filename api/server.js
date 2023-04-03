@@ -4,13 +4,13 @@ const app = express();
 const fs = require('fs');
 app.use(bodyParser.urlencoded({ extended: true }));
 console.log('starting....');
-// app.use('/', express.static('pages'));
-
-// const cors = require('cors');
+const cors = require('cors');
 
 // **** Set basic express settings **** //
 
-// app.use(cors());
+app.use(cors());
+
+var checkIfAdminExists;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,41 +24,74 @@ var connection = mysql.createConnection({
 
 connection.connect;
 
-connection.query(
-  `CREATE DATABASE IF NOT EXISTS deezdb`,
-  function (error, result) {
+function createDB() {
+  connection.query(
+    `CREATE DATABASE IF NOT EXISTS deezdb`,
+    function (error, result) {
+      if (error) console.log(error);
+    }
+  );
+  connection.query(`USE deezdb`, function (error, results) {
     if (error) console.log(error);
-  }
-);
-connection.query(`USE deezdb`, function (error, results) {
-  if (error) console.log(error);
-});
+  });
+  createUsersTable();
+}
+createDB();
+// var query = `
+// DROP TABLE users
+// `;
 
-connection.query(
-  `CREATE TABLE IF NOT EXISTS users
+// connection.query(query, (error, results) => {
+//   if (error) {
+//     console.error('Error deleting tables:', error);
+//     return;
+//   }
+//   console.log(`Deleted ${results.length} tables`);
+// });
+
+// connection.query(`SELECT * FROM users`, (error, result) => {
+//   if (error) {
+//     checkIfAdminExists = false; // this means that the table has not been created yet, hence no admin
+//     console.log('GOT TO THIS USERS PART');
+//   } else {
+//     checkIfAdminExists = true;
+//   }
+// });
+function createUsersTable() {
+  connection.query(
+    `CREATE TABLE IF NOT EXISTS users
 ( id int unsigned NOT NULL auto_increment, username varchar(20)
 NOT NULL,
 password varchar(30) NOT NULL,
+authoritylevel int NOT NULL,
 PRIMARY KEY (id)
 )`,
-  function (error, result) {}
-);
-console.log('made users table');
-connection.query(
-  `CREATE TABLE IF NOT EXISTS posts
+    function (error, result) {}
+  );
+  console.log('made users table');
+  createPostsTable();
+}
+
+function createPostsTable() {
+  connection.query(
+    `CREATE TABLE IF NOT EXISTS posts
 ( id int unsigned NOT NULL auto_increment,
-  post id int NOT NULL,
+  postid int NOT NULL,
 data varchar(400) NOT NULL,
 userid int,
 upvotes int,
 downvotes int,
 PRIMARY KEY (id)
 )`,
-  function (error, result) {}
-);
-console.log('made posts table');
-connection.query(
-  `CREATE TABLE IF NOT EXISTS replies
+    function (error, result) {}
+  );
+  console.log('made posts table');
+  createRepliesTable();
+}
+
+function createRepliesTable() {
+  connection.query(
+    `CREATE TABLE IF NOT EXISTS replies
 ( id int unsigned NOT NULL auto_increment, topic varchar(30)
 NOT NULL,
 data varchar(400) NOT NULL,
@@ -67,9 +100,59 @@ upvotes int,
 downvotes int,
 PRIMARY KEY (id)
 )`,
-  function (error, result) {}
-);
+    function (error, result) {}
+  );
+}
+app.post('/test', (req, res) => {
+  console.log('CONNECTED');
+});
+app.post('/login', (req, res) => {
+  console.log('got to signin post function');
+  const username = req.body.username;
+  const password = req.body.password;
+
+  console.log(username + password);
+
+  const query = `
+    SELECT * FROM users WHERE username = ? AND password = ? LIMIT 1;
+  `;
+
+  connection.query(query, [username, password], (error, results) => {
+    if (error) {
+      console.error('Error checking for user:', error);
+      return;
+    }
+
+    if (results.length === 0) {
+      res.send('User does not exist');
+    } else {
+      res.send('User exists');
+    }
+  });
+});
+app.post('/register', (req, res) => {
+  console.log('got here');
+  const username = req.body.username;
+  const password = req.body.password;
+  const authoritylevel = 0;
+
+  var query = `INSERT INTO users (username, password, authoritylevel) VALUES
+    ('${username}', '${password}', '${authoritylevel}')`;
+
+  connection.query(query, function (error, result) {
+    console.log(error);
+  });
+  console.log('added new user with username ' + username);
+  res.send('ok ');
+});
+
+var theQuery = `SELECT * FROM users`;
+connection.query(theQuery, function (err, result) {
+  if (err) console.log(err);
+  console.log(JSON.stringify(result));
+});
 console.log('made replies table');
+
 app.listen(PORT, () => {
   console.log(`Server running on port http://localhost:${PORT}`);
 });
