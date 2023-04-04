@@ -81,6 +81,7 @@ data varchar(400) NOT NULL,
 userid int,
 upvotes int,
 downvotes int,
+channelid int,
 PRIMARY KEY (id)
 )`,
     function (error, result) {}
@@ -98,8 +99,21 @@ data varchar(400) NOT NULL,
 userid int,
 upvotes int,
 downvotes int,
+channelid int,
 PRIMARY KEY (id)
 )`,
+    function (error, result) {}
+  );
+  createChannelsTable();
+}
+
+function createChannelsTable() {
+  connection.query(
+    `CREATE TABLE IF NOT EXISTS channels
+    ( id int unsigned NOT NULL auto_increment, name varchar(30)
+    NOT NULL,
+    PRIMARY KEY (id)
+    )`,
     function (error, result) {}
   );
 }
@@ -146,12 +160,31 @@ app.post('/register', (req, res) => {
   res.send('ok ');
 });
 
+app.post('/createChannel', (req, res) => {
+  const name = req.body.name;
+  var query = `INSERT INTO channels (name) VALUES
+  ('${name}')`;
+  connection.query(query, function (error, result) {
+    console.log(error);
+  });
+  console.log('added new channel ' + name);
+  res.send('ok ');
+});
+
+app.get('/getChannels', (req, res) => {
+  var theQuery = `SELECT * FROM channels`;
+  connection.query(theQuery, function (err, result) {
+    if (err) console.log(err);
+    console.log(JSON.stringify(result));
+    res.send(JSON.stringify(result));
+  });
+});
+
 var theQuery = `SELECT * FROM users`;
 connection.query(theQuery, function (err, result) {
   if (err) console.log(err);
   console.log(JSON.stringify(result));
 });
-console.log('made replies table');
 
 app.listen(PORT, () => {
   console.log(`Server running on port http://localhost:${PORT}`);
