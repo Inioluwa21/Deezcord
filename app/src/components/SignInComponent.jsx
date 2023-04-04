@@ -18,7 +18,7 @@ function SignInComponent() {
 
     axios.post('http://localhost:81/login', userInfo).then((response) => {
       if (response == 'User exists') {
-        //navigate to home page
+        navigate('/Chat');
       }
     });
   }
