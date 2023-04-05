@@ -1,9 +1,14 @@
 import React from 'react';
+import axios from 'axios';
 
-function ChannelComponent() {
-  return <div>
-    <span>#</span>
-  </div>;
+// make axios call store is some form of use state array, display everything in it
+
+function ChannelComponent(props) {
+  return (
+    <div>
+      <button>#{props.argument}</button>
+    </div>
+  );
 }
 
 export default ChannelComponent;
