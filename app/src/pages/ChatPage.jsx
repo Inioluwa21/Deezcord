@@ -2,9 +2,12 @@ import React from 'react';
 import SideBar from '../components/SideBar';
 
 function ChatPage() {
-  <div>
-    <SideBar />
-  </div>;
+  return (
+    <div>
+      <h1>CHAT</h1>
+      <SideBar />
+    </div>
+  );
 }
 
 export default ChatPage;
