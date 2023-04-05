@@ -76,7 +76,8 @@ function createPostsTable() {
   connection.query(
     `CREATE TABLE IF NOT EXISTS posts
 ( id int unsigned NOT NULL auto_increment,
-  postid int NOT NULL,
+  topic varchar(30)
+NOT NULL,
 data varchar(400) NOT NULL,
 userid int,
 upvotes int,
@@ -93,12 +94,12 @@ PRIMARY KEY (id)
 function createRepliesTable() {
   connection.query(
     `CREATE TABLE IF NOT EXISTS replies
-( id int unsigned NOT NULL auto_increment, topic varchar(30)
-NOT NULL,
+( id int unsigned NOT NULL auto_increment,
 data varchar(400) NOT NULL,
 userid int,
 upvotes int,
 downvotes int,
+postid int NOT NULL,
 channelid int,
 PRIMARY KEY (id)
 )`,
@@ -140,6 +141,7 @@ app.post('/login', (req, res) => {
     if (results.length === 0) {
       res.send('User does not exist');
     } else {
+      console.log('User exists');
       res.send('User exists');
     }
   });
@@ -180,10 +182,25 @@ app.get('/getChannels', (req, res) => {
   });
 });
 
+app.get('/getReplies', (req, res) => {
+  var postId = req.body.postId;
+  const query = `
+  SELECT * FROM replies WHERE postid = ?;
+`;
+
+  connection.query(query, [postId], (error, results) => {
+    if (error) {
+      console.error('Error getting replies:', error);
+      return;
+    }
+    console.log(JSON.stringify(results));
+    res.send(JSON.stringify(results));
+  });
+});
+
 var theQuery = `SELECT * FROM users`;
 connection.query(theQuery, function (err, result) {
   if (err) console.log(err);
-  console.log(JSON.stringify(result));
 });
 
 app.listen(PORT, () => {
