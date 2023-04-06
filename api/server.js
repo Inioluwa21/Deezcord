@@ -9,6 +9,9 @@ const cors = require('cors');
 // **** Set basic express settings **** //
 
 var currentChannel = '';
+var currentUserId = '';
+var currentUserName = '';
+var upvote = false;
 
 app.use(cors());
 
@@ -142,10 +145,10 @@ app.post('/login', (req, res) => {
     }
 
     if (results.length === 0) {
-      res.send('User does not exist');
+      res.send('none');
     } else {
+      res.send(results);
       console.log('User exists');
-      res.send('User exists');
     }
   });
 });
@@ -166,12 +169,14 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/createMessage', (req, res) => {
-  const username = req.body.username;
+  const username = currentUserName;
   const data = req.body.data;
   const channelname = req.body.channelname;
+  const upvotes = 0;
+  const downvotes = 0;
 
-  var query = `INSERT INTO posts (data, username, channelname) VALUES
-('${data}', '${username}', '${currentChannel}')`;
+  var query = `INSERT INTO posts (data, username, upvotes, downvotes, channelname) VALUES
+('${data}', '${username}', '${upvotes}', '${downvotes}', '${currentChannel}')`;
 
   connection.query(query, function (error, result) {
     console.log(error);
@@ -210,13 +215,15 @@ app.get('/getChannels', (req, res) => {
 
 app.post('/postReply', (req, res) => {
   var data = req.body.data;
-  var username = req.body.username;
+  var username = currentUserName;
   var postid = req.body.postId;
   console.log('id: ' + postid);
   var channelname = req.body.currentChannel;
+  var upvotes = 0;
+  var downvotes = 0;
 
-  var query = `INSERT INTO replies (data, username, postid, channelname) VALUES
-  ('${data}', '${username}', '${postid}', '${currentChannel}')`;
+  var query = `INSERT INTO replies (data, username, upvotes, downvotes, postid, channelname) VALUES
+  ('${data}', '${username}', '${upvotes}', '${downvotes}', '${postid}', '${currentChannel}')`;
   connection.query(query, function (error, result) {
     console.log(error);
   });
@@ -233,7 +240,6 @@ app.get('/getReplies', (req, res) => {
       console.error('Error getting replies:', error);
       return;
     }
-    console.log(JSON.stringify(results));
     res.send(JSON.stringify(results));
   });
 });
@@ -242,6 +248,54 @@ app.post('/setCurrentChannel', (req, res) => {
   console.log('got here');
   currentChannel = req.body.channelname;
   console.log('The current channel is now ' + req.body.channelname);
+});
+
+app.post('/storeUser', (req, res) => {
+  currentUserId = req.body.userId;
+  currentUserName = req.body.username;
+  console.log('the current user is now ' + currentUserName);
+});
+
+app.post('/toggleUpVote', (req, res) => {
+  var postid = req.body.postid;
+  var type = req.body.type;
+  var query;
+  if (type === 'message') {
+    query = `UPDATE posts SET upvotes = upvotes + 1 WHERE id = ?`;
+  } else {
+    query = `UPDATE replies SET upvotes = upvotes + 1 WHERE id = ?`;
+  }
+
+  connection.query(query, [postid], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Upvote count updated successfully');
+  });
+});
+
+app.post('/toggleDownVote', (req, res) => {
+  var postid = req.body.postid;
+  var type = req.body.type;
+  var query;
+  if (type === 'message') {
+    query = `UPDATE posts SET downvotes = downvotes + 1 WHERE id = ?`;
+  } else {
+    query = `UPDATE replies SET downvotes = downvotes + 1 WHERE id = ?`;
+  }
+
+  connection.query(query, [postid], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Downvote count updated successfully');
+  });
+});
+
+app.post('/deleteUser', (req, res) => {
+  var username = req.body.username;
+  const query = `DELETE FROM users WHERE username = ?`;
+
+  connection.query(query, [username], function (error, results, fields) {
+    if (error) throw error;
+    console.log('User deleted successfully');
+  });
 });
 
 var theQuery = `SELECT * FROM users`;
