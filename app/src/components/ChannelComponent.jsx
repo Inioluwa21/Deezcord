@@ -6,7 +6,7 @@ import axios from 'axios';
 function ChannelComponent(props) {
   return (
     <div>
-      <button>#{props.argument}</button>
+      <button onClick={props.func}># {props.argument}</button>
     </div>
   );
 }
