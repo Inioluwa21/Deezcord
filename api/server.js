@@ -8,6 +8,8 @@ const cors = require('cors');
 
 // **** Set basic express settings **** //
 
+var currentChannel = '';
+
 app.use(cors());
 
 var checkIfAdminExists;
@@ -37,6 +39,7 @@ function createDB() {
   createUsersTable();
 }
 createDB();
+
 // var query = `
 // DROP TABLE users
 // `;
@@ -72,17 +75,16 @@ PRIMARY KEY (id)
   createPostsTable();
 }
 
-function createPostsTable() {
+async function createPostsTable() {
+  // await connection.query('DROP TABLE IF EXISTS posts');
   connection.query(
     `CREATE TABLE IF NOT EXISTS posts
 ( id int unsigned NOT NULL auto_increment,
-  topic varchar(30)
-NOT NULL,
 data varchar(400) NOT NULL,
-userid int,
+username varchar(40) NOT NULL,
 upvotes int,
 downvotes int,
-channelid int,
+channelname varchar(40),
 PRIMARY KEY (id)
 )`,
     function (error, result) {}
@@ -91,16 +93,17 @@ PRIMARY KEY (id)
   createRepliesTable();
 }
 
-function createRepliesTable() {
+async function createRepliesTable() {
+  // await connection.query('DROP TABLE IF EXISTS replies');
   connection.query(
     `CREATE TABLE IF NOT EXISTS replies
 ( id int unsigned NOT NULL auto_increment,
 data varchar(400) NOT NULL,
-userid int,
+username varchar(40),
 upvotes int,
 downvotes int,
 postid int NOT NULL,
-channelid int,
+channelname varchar(40),
 PRIMARY KEY (id)
 )`,
     function (error, result) {}
@@ -162,6 +165,30 @@ app.post('/register', (req, res) => {
   res.send('ok ');
 });
 
+app.post('/createMessage', (req, res) => {
+  const username = req.body.username;
+  const data = req.body.data;
+  const channelname = req.body.channelname;
+
+  var query = `INSERT INTO posts (data, username, channelname) VALUES
+('${data}', '${username}', '${currentChannel}')`;
+
+  connection.query(query, function (error, result) {
+    console.log(error);
+  });
+});
+
+app.get('/getMessages', (req, res) => {
+  // var channelname = req.body.channelname;
+
+  // console.log('the channel: ' + channelname);
+  var theQuery = `SELECT * FROM posts WHERE channelname = ?`;
+  connection.query(theQuery, [currentChannel], function (err, result) {
+    if (err) console.log(err);
+    res.send(JSON.stringify(result));
+  });
+});
+
 app.post('/createChannel', (req, res) => {
   const name = req.body.name;
   var query = `INSERT INTO channels (name) VALUES
@@ -177,18 +204,31 @@ app.get('/getChannels', (req, res) => {
   var theQuery = `SELECT * FROM channels`;
   connection.query(theQuery, function (err, result) {
     if (err) console.log(err);
-    console.log(JSON.stringify(result));
     res.send(JSON.stringify(result));
   });
 });
 
+app.post('/postReply', (req, res) => {
+  var data = req.body.data;
+  var username = req.body.username;
+  var postid = req.body.postId;
+  console.log('id: ' + postid);
+  var channelname = req.body.currentChannel;
+
+  var query = `INSERT INTO replies (data, username, postid, channelname) VALUES
+  ('${data}', '${username}', '${postid}', '${currentChannel}')`;
+  connection.query(query, function (error, result) {
+    console.log(error);
+  });
+  console.log('created a new reply with ' + postid);
+});
 app.get('/getReplies', (req, res) => {
-  var postId = req.body.postId;
+  // var postId = req.body.postId;
   const query = `
-  SELECT * FROM replies WHERE postid = ?;
+  SELECT * FROM replies WHERE channelname = ?;
 `;
 
-  connection.query(query, [postId], (error, results) => {
+  connection.query(query, [currentChannel], (error, results) => {
     if (error) {
       console.error('Error getting replies:', error);
       return;
@@ -196,6 +236,12 @@ app.get('/getReplies', (req, res) => {
     console.log(JSON.stringify(results));
     res.send(JSON.stringify(results));
   });
+});
+
+app.post('/setCurrentChannel', (req, res) => {
+  console.log('got here');
+  currentChannel = req.body.channelname;
+  console.log('The current channel is now ' + req.body.channelname);
 });
 
 var theQuery = `SELECT * FROM users`;
