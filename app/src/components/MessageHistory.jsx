@@ -36,7 +36,10 @@ function MessageHistory() {
     axios
       .post('http://localhost:81/postReply', replyInfo)
       .then((response) => {});
+
+    window.location.reload();
   }
+
   function getAllMessages() {
     // alert(currentChannel);
     const channelInfo = {
@@ -49,6 +52,8 @@ function MessageHistory() {
           messages.data,
           messages.id,
           messages.username,
+          messages.upvote,
+          messages.downvote,
         ]);
         setMessages(theMessages);
       });
@@ -62,6 +67,8 @@ function MessageHistory() {
         replies.postid,
         replies.username,
         replies.id,
+        replies.upvote,
+        replies.downvote,
       ]);
       setReplies(theReplies);
     });
@@ -72,15 +79,55 @@ function MessageHistory() {
   return (
     <div>
       {messages.map((item) => (
-        <div key={item}>
-          <p>
-            <b>{item[0]}</b>
-          </p>
+        <div
+          key={item}
+          style={{
+            width: '100%',
+            backgroundColor: '#bd03',
+            border: '#fff',
+            borderRadius: '5px',
+          }}
+        >
+          <div>
+            <p>{item[2]} says</p>
+            <p>
+              <b>{item[0]}</b>
+            </p>
+            <button>👍 {item[3]}</button>
+            <button>👎 {item[4]}</button>
+          </div>
           {replies
             .filter((replyItem) => replyItem[1] === item[1])
             .map((replyItem) => (
               <div key={replyItem}>
-                <p> {replyItem[0]}</p>
+                <div style={{ display: 'flex' }}>
+                  <p style={{ textIndent: '10px' }}>
+                    {' '}
+                    {replyItem[2]} replies: {replyItem[0]}
+                  </p>{' '}
+                  <button
+                    onClick={() => setTheMessageId(replyItem[3])}
+                    style={{ height: '20px' }}
+                  >
+                    Reply
+                  </button>
+                  <button style={{ height: '24px' }}>👍 {item[4]}</button>
+                  <button style={{ height: '24px' }}>👎 {item[5]}</button>
+                </div>
+                {replies
+                  .filter((nestedReply) => nestedReply[1] === replyItem[3])
+                  .map((nestedReply) => (
+                    <div key={nestedReply}>
+                      <div style={{ display: 'flex' }}>
+                        <p style={{ textIndent: '60px' }}>
+                          {nestedReply[2]} replies: {nestedReply[0]}
+                        </p>
+                        <button style={{ height: '20px' }}>Reply</button>
+                        <button style={{ height: '24px' }}>👍 {item[4]}</button>
+                        <button style={{ height: '24px' }}>👎 {item[5]}</button>
+                      </div>
+                    </div>
+                  ))}
               </div>
             ))}
           <button onClick={() => setTheMessageId(item[1])}>Reply</button>
