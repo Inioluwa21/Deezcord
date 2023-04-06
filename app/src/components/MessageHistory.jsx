@@ -9,6 +9,25 @@ function MessageHistory() {
   const [messages, setMessages] = useState([]);
   const [replies, setReplies] = useState([]);
 
+  function handleUpVote(id, postType) {
+    const upVoteInfo = {
+      postid: id,
+      type: postType,
+    };
+    axios
+      .post('http://localhost:81/toggleUpVote', upVoteInfo)
+      .then((response) => {});
+  }
+
+  function handleDownVote(id, postType) {
+    const downVoteInfo = {
+      postid: id,
+      type: postType,
+    };
+    axios
+      .post('http://localhost:81/toggleDownVote', downVoteInfo)
+      .then((response) => {});
+  }
   function setTheMessageId(mId) {
     messageId = mId;
   }
@@ -93,8 +112,12 @@ function MessageHistory() {
             <p>
               <b>{item[0]}</b>
             </p>
-            <button>👍 {item[3]}</button>
-            <button>👎 {item[4]}</button>
+            <button onClick={() => handleUpVote(item[1], 'message')}>
+              👍 {item[3]}
+            </button>
+            <button onClick={() => handleDownVote(item[1], 'message')}>
+              👎 {item[4]}
+            </button>
           </div>
           {replies
             .filter((replyItem) => replyItem[1] === item[1])
@@ -111,8 +134,18 @@ function MessageHistory() {
                   >
                     Reply
                   </button>
-                  <button style={{ height: '24px' }}>👍 {item[4]}</button>
-                  <button style={{ height: '24px' }}>👎 {item[5]}</button>
+                  <button
+                    style={{ height: '24px' }}
+                    onClick={() => handleUpVote(replyItem[3], 'reply')}
+                  >
+                    👍 {replyItem[4]}
+                  </button>
+                  <button
+                    style={{ height: '24px' }}
+                    onClick={() => handleDownVote(replyItem[3], 'reply')}
+                  >
+                    👎 {replyItem[5]}
+                  </button>
                 </div>
                 {replies
                   .filter((nestedReply) => nestedReply[1] === replyItem[3])
@@ -123,8 +156,20 @@ function MessageHistory() {
                           {nestedReply[2]} replies: {nestedReply[0]}
                         </p>
                         <button style={{ height: '20px' }}>Reply</button>
-                        <button style={{ height: '24px' }}>👍 {item[4]}</button>
-                        <button style={{ height: '24px' }}>👎 {item[5]}</button>
+                        <button
+                          style={{ height: '24px' }}
+                          onClick={() => handleUpVote(nestedReply[3], 'reply')}
+                        >
+                          👍 {nestedReply[4]}
+                        </button>
+                        <button
+                          style={{ height: '24px' }}
+                          onClick={() =>
+                            handleDownVote(nestedReply[3], 'reply')
+                          }
+                        >
+                          👎 {item[5]}
+                        </button>
                       </div>
                     </div>
                   ))}
