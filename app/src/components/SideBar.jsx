@@ -1,9 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import ChannelComponent from './ChannelComponent';
+import { AuthContext } from '../AuthContext';
+import MessageHistory from './MessageHistory';
 
 function SideBar() {
+  const { setCurrentChannel } = useContext(AuthContext);
+
   const [channels, setChannels] = useState([]);
+
+  function setTheCurrentChannel(chanName) {
+    // alert(chanName);
+    setCurrentChannel(chanName);
+    const channelInfo = {
+      channelname: chanName,
+    };
+    axios
+      .post('http://localhost:81/setCurrentChannel', channelInfo)
+      .then((response) => {});
+    window.location.reload();
+  }
 
   function addChannel() {
     const channelInfo = {
@@ -30,7 +46,11 @@ function SideBar() {
     <div>
       {channels.map((item) => (
         <div key={item}>
-          <ChannelComponent argument={item} />
+          <ChannelComponent
+            argument={item}
+            // onClick={() => callMessagesForTheChannel()}
+            func={() => setTheCurrentChannel(item)}
+          />
           <br />
         </div>
       ))}
