@@ -19,6 +19,12 @@ function AdminSideBar() {
       .then((response) => {});
   }
 
+  function removeAChannel(channelId) {
+    const channelInfo = {
+      id: channelId,
+    };
+    axios.post('http://localhost:81/deleteChannel', channelInfo);
+  }
   function setTheCurrentChannel(chanName) {
     setCurrentChannel(chanName);
     const channelInfo = {
@@ -42,7 +48,10 @@ function AdminSideBar() {
 
   function getAllChannels() {
     axios.get('http://localhost:81/getChannels').then((response) => {
-      const channelNames = response.data.map((channel) => channel.name);
+      const channelNames = response.data.map((channel) => [
+        channel.name,
+        channel.id,
+      ]);
       setChannels(channelNames);
     });
   }
@@ -55,11 +64,14 @@ function AdminSideBar() {
     <div>
       {channels.map((item) => (
         <div key={item}>
-          <ChannelComponent
-            argument={item}
-            // onClick={() => callMessagesForTheChannel()}
-            func={() => setTheCurrentChannel(item)}
-          />
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <ChannelComponent
+              argument={item[0]}
+              // onClick={() => callMessagesForTheChannel()}
+              func={() => setTheCurrentChannel(item[0])}
+            />
+            <button onClick={() => removeAChannel(item[1])}>Remove</button>
+          </div>
           <br />
         </div>
       ))}
