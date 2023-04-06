@@ -8,16 +8,34 @@ function SignInComponent() {
   function goToRegisterPage() {
     navigate('/Register');
   }
+  function goToChatPage() {
+    navigate('/ChatPage');
+  }
+  function storeUser(userid, username) {
+    const userInfo = {
+      userId: userid,
+      username: username,
+    };
+    axios
+      .post('http://localhost:81/storeUser', userInfo)
+      .then((response) => {});
+  }
 
   function loginAUser() {
     const userInfo = {
       username: document.getElementById('userName1').value,
       password: document.getElementById('password1').value,
     };
-    alert('got here');
 
     axios.post('http://localhost:81/login', userInfo).then((response) => {
-      if (response == 'User exists') {
+      alert(response.data);
+      if (response.data === 'none') {
+        alert('Incorrect username or password');
+      } else {
+        const theUserId = response.data.map((users) => [users.id]);
+        const theUserName = response.data.map((users) => [users.username]);
+        alert('the: ' + theUserId);
+        storeUser(theUserId, theUserName);
         navigate('/Chat');
       }
     });
@@ -43,6 +61,8 @@ function SignInComponent() {
               placeholder="Password"
             />
           </div>
+        </form>
+        <div>
           <button className="signInButton" onClick={loginAUser}>
             {' '}
             Sign In
@@ -50,7 +70,7 @@ function SignInComponent() {
           <p className="register-link" onClick={goToRegisterPage}>
             Create an account
           </p>
-        </form>
+        </div>
       </div>
     </div>
   );
