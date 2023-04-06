@@ -298,6 +298,36 @@ app.post('/deleteUser', (req, res) => {
   });
 });
 
+app.post('/deleteChannel', (req, res) => {
+  var id = req.body.id;
+  const query = `DELETE FROM channels WHERE id = ?`;
+
+  connection.query(query, [id], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Channel deleted successfully');
+  });
+});
+
+app.post('/deleteMessage', (req, res) => {
+  var id = req.body.id;
+  const query = `DELETE FROM posts WHERE id = ?`;
+
+  connection.query(query, [id], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Message deleted successfully');
+  });
+});
+
+app.post('/deleteReply', (req, res) => {
+  var id = req.body.id;
+  const query = `DELETE FROM replies WHERE id = ?`;
+
+  connection.query(query, [id], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Message deleted successfully');
+  });
+});
+
 var theQuery = `SELECT * FROM users`;
 connection.query(theQuery, function (err, result) {
   if (err) console.log(err);
