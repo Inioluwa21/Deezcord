@@ -194,6 +194,33 @@ app.get('/getMessages', (req, res) => {
   });
 });
 
+app.get('/searchMessage', (req, res) => {
+  var searchString = req.body.searchString;
+  var searchValue = `%${searchString}%`;
+  var finalResult;
+  var theQuery = `SELECT * FROM posts WHERE data LIKE ?`;
+  connection.query(theQuery, [searchValue], function (err, result) {
+    if (err) console.log(err);
+    // res.send(JSON.stringify(result));
+    finalResult += result;
+    console.log(JSON.stringify(result));
+  });
+
+  var theQuery2 = `SELECT * FROM replies WHERE data LIKE ?`;
+  connection.query(theQuery, [searchValue], function (err, result) {
+    if (err) console.log(err);
+    // res.send(JSON.stringify(result));
+    finalResult += result;
+    console.log(JSON.stringify(result));
+  });
+
+  res.send(finalResult);
+});
+
+
+app.get('searchUser', (req, res) => {
+  
+})
 app.post('/createChannel', (req, res) => {
   const name = req.body.name;
   var query = `INSERT INTO channels (name) VALUES
@@ -331,6 +358,7 @@ app.post('/deleteReply', (req, res) => {
 var theQuery = `SELECT * FROM users`;
 connection.query(theQuery, function (err, result) {
   if (err) console.log(err);
+  console.log(JSON.stringify(result));
 });
 
 app.listen(PORT, () => {
