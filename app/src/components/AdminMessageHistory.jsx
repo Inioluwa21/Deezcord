@@ -16,6 +16,7 @@ function AdminMessageHistory() {
     axios
       .post('http://localhost:81/deleteMessage', messageInfo)
       .then((response) => {});
+    window.location.reload();
   }
 
   function removeAReply(replyId) {
@@ -25,6 +26,7 @@ function AdminMessageHistory() {
     axios
       .post('http://localhost:81/deleteReply', replyInfo)
       .then((response) => {});
+    window.location.reload();
   }
 
   function handleUpVote(id, postType) {

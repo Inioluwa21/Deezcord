@@ -17,6 +17,7 @@ function MessageHistory() {
     axios
       .post('http://localhost:81/toggleUpVote', upVoteInfo)
       .then((response) => {});
+    window.location.reload();
   }
 
   function handleDownVote(id, postType) {
@@ -27,6 +28,7 @@ function MessageHistory() {
     axios
       .post('http://localhost:81/toggleDownVote', downVoteInfo)
       .then((response) => {});
+    window.location.reload();
   }
   function setTheMessageId(mId) {
     messageId = mId;
@@ -44,7 +46,6 @@ function MessageHistory() {
     window.location.reload();
   }
   function makeAReply() {
-    alert(messageId);
     const replyInfo = {
       username: '',
       data: document.getElementById('data').value,
@@ -71,8 +72,8 @@ function MessageHistory() {
           messages.data,
           messages.id,
           messages.username,
-          messages.upvote,
-          messages.downvote,
+          messages.upvotes,
+          messages.downvotes,
         ]);
         setMessages(theMessages);
       });
@@ -86,8 +87,8 @@ function MessageHistory() {
         replies.postid,
         replies.username,
         replies.id,
-        replies.upvote,
-        replies.downvote,
+        replies.upvotes,
+        replies.downvotes,
       ]);
       setReplies(theReplies);
     });

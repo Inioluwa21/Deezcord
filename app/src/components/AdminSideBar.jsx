@@ -17,6 +17,7 @@ function AdminSideBar() {
     axios
       .post('http://localhost:81/deleteUser', userInfo)
       .then((response) => {});
+    window.location.reload();
   }
 
   function removeAChannel(channelId) {
@@ -24,6 +25,7 @@ function AdminSideBar() {
       id: channelId,
     };
     axios.post('http://localhost:81/deleteChannel', channelInfo);
+    window.location.reload();
   }
   function setTheCurrentChannel(chanName) {
     setCurrentChannel(chanName);
