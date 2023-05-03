@@ -5,8 +5,13 @@ const fs = require('fs');
 app.use(bodyParser.urlencoded({ extended: true }));
 console.log('starting....');
 const cors = require('cors');
-
+const PORT = 8000;
 // **** Set basic express settings **** //
+
+var currentChannel = '';
+var currentUserId = '';
+var currentUserName = '';
+var upvote = false;
 
 app.use(cors());
 
@@ -15,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 var mysql = require('mysql');
-const PORT = 8000;
+
 var connection = mysql.createConnection({
   host: 'mysql1',
   user: 'root',
@@ -37,26 +42,7 @@ function createDB() {
   createUsersTable();
 }
 createDB();
-// var query = `
-// DROP TABLE users
-// `;
 
-// connection.query(query, (error, results) => {
-//   if (error) {
-//     console.error('Error deleting tables:', error);
-//     return;
-//   }
-//   console.log(`Deleted ${results.length} tables`);
-// });
-
-// connection.query(`SELECT * FROM users`, (error, result) => {
-//   if (error) {
-//     checkIfAdminExists = false; // this means that the table has not been created yet, hence no admin
-//     console.log('GOT TO THIS USERS PART');
-//   } else {
-//     checkIfAdminExists = true;
-//   }
-// });
 function createUsersTable() {
   connection.query(
     `CREATE TABLE IF NOT EXISTS users
@@ -72,15 +58,15 @@ PRIMARY KEY (id)
   createPostsTable();
 }
 
-function createPostsTable() {
+async function createPostsTable() {
   connection.query(
     `CREATE TABLE IF NOT EXISTS posts
 ( id int unsigned NOT NULL auto_increment,
-  postid int NOT NULL,
 data varchar(400) NOT NULL,
-userid int,
+username varchar(40) NOT NULL,
 upvotes int,
 downvotes int,
+channelname varchar(40),
 PRIMARY KEY (id)
 )`,
     function (error, result) {}
@@ -89,17 +75,30 @@ PRIMARY KEY (id)
   createRepliesTable();
 }
 
-function createRepliesTable() {
+async function createRepliesTable() {
   connection.query(
     `CREATE TABLE IF NOT EXISTS replies
-( id int unsigned NOT NULL auto_increment, topic varchar(30)
-NOT NULL,
+( id int unsigned NOT NULL auto_increment,
 data varchar(400) NOT NULL,
-userid int,
+username varchar(40),
 upvotes int,
 downvotes int,
+postid int NOT NULL,
+channelname varchar(40),
 PRIMARY KEY (id)
 )`,
+    function (error, result) {}
+  );
+  createChannelsTable();
+}
+
+async function createChannelsTable() {
+  connection.query(
+    `CREATE TABLE IF NOT EXISTS channels
+    ( id int unsigned NOT NULL auto_increment, name varchar(30)
+    NOT NULL,
+    PRIMARY KEY (id)
+    )`,
     function (error, result) {}
   );
 }
@@ -124,9 +123,10 @@ app.post('/login', (req, res) => {
     }
 
     if (results.length === 0) {
-      res.send('User does not exist');
+      res.send('none');
     } else {
-      res.send('User exists');
+      res.send(results);
+      console.log('User exists');
     }
   });
 });
@@ -146,12 +146,210 @@ app.post('/register', (req, res) => {
   res.send('ok ');
 });
 
+app.post('/createMessage', (req, res) => {
+  const username = currentUserName;
+  const data = req.body.data;
+  const channelname = req.body.channelname;
+  const upvotes = 0;
+  const downvotes = 0;
+
+  var query = `INSERT INTO posts (data, username, upvotes, downvotes, channelname) VALUES
+('${data}', '${username}', '${upvotes}', '${downvotes}', '${currentChannel}')`;
+
+  connection.query(query, function (error, result) {
+    console.log(error);
+  });
+});
+
+app.get('/getMessages', (req, res) => {
+  // var channelname = req.body.channelname;
+
+  // console.log('the channel: ' + channelname);
+  var theQuery = `SELECT * FROM posts WHERE channelname = ?`;
+  connection.query(theQuery, [currentChannel], function (err, result) {
+    if (err) console.log(err);
+    res.send(JSON.stringify(result));
+  });
+});
+
+app.get('/searchMessage', (req, res) => {
+  var searchString = req.body.searchString;
+  var searchValue = `%${searchString}%`;
+  var finalResult;
+  var theQuery = `SELECT * FROM posts`;
+  connection.query(theQuery, function (err, result) {
+    if (err) console.log(err);
+    res.send(JSON.stringify(result));
+  });
+});
+
+app.get('/searchReplies', (req, res) => {
+  var theQuery = `SELECT * FROM replies`;
+  connection.query(theQuery, function (err, result) {
+    if (err) console.log(err);
+    res.send(JSON.stringify(result));
+  });
+});
+
+app.get('/searchUser', (req, res) => {
+  var theUser = req.body.username;
+  var finalResult;
+  var theQuery = `SELECT * FROM posts WHERE username = ?`;
+  connection.query(theQuery, [theUser], function (err, result) {
+    if (err) console.log(err);
+    // res.send(JSON.stringify(result));
+    finalResult += result;
+    console.log(JSON.stringify(result));
+  });
+
+  var theQuery2 = `SELECT * FROM replies WHERE username = ?`;
+  connection.query(theQuery2, [theUser], function (err, result) {
+    if (err) console.log(err);
+    // res.send(JSON.stringify(result));
+    finalResult += result;
+    console.log(JSON.stringify(result));
+  });
+  res.send(finalResult);
+});
+app.post('/createChannel', (req, res) => {
+  const name = req.body.name;
+  var query = `INSERT INTO channels (name) VALUES
+  ('${name}')`;
+  connection.query(query, function (error, result) {
+    console.log(error);
+  });
+  console.log('added new channel ' + name);
+  res.send('ok ');
+});
+
+app.get('/getChannels', (req, res) => {
+  var theQuery = `SELECT * FROM channels`;
+  connection.query(theQuery, function (err, result) {
+    if (err) console.log(err);
+    res.send(JSON.stringify(result));
+  });
+});
+
+app.post('/postReply', (req, res) => {
+  var data = req.body.data;
+  var username = currentUserName;
+  var postid = req.body.postId;
+  console.log('id: ' + postid);
+  var channelname = req.body.currentChannel;
+  var upvotes = 0;
+  var downvotes = 0;
+
+  var query = `INSERT INTO replies (data, username, upvotes, downvotes, postid, channelname) VALUES
+  ('${data}', '${username}', '${upvotes}', '${downvotes}', '${postid}', '${currentChannel}')`;
+  connection.query(query, function (error, result) {
+    console.log(error);
+  });
+  console.log('created a new reply with ' + postid);
+});
+app.get('/getReplies', (req, res) => {
+  // var postId = req.body.postId;
+  const query = `
+  SELECT * FROM replies WHERE channelname = ?;
+`;
+
+  connection.query(query, [currentChannel], (error, results) => {
+    if (error) {
+      console.error('Error getting replies:', error);
+      return;
+    }
+    res.send(JSON.stringify(results));
+  });
+});
+
+app.post('/setCurrentChannel', (req, res) => {
+  console.log('got here');
+  currentChannel = req.body.channelname;
+  console.log('The current channel is now ' + req.body.channelname);
+});
+
+app.post('/storeUser', (req, res) => {
+  currentUserId = req.body.userId;
+  currentUserName = req.body.username;
+  console.log('the current user is now ' + currentUserName);
+});
+
+app.post('/toggleUpVote', (req, res) => {
+  var postid = req.body.postid;
+  var type = req.body.type;
+  var query;
+  if (type === 'message') {
+    query = `UPDATE posts SET upvotes = upvotes + 1 WHERE id = ?`;
+  } else {
+    query = `UPDATE replies SET upvotes = upvotes + 1 WHERE id = ?`;
+  }
+
+  connection.query(query, [postid], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Upvote count updated successfully');
+  });
+});
+
+app.post('/toggleDownVote', (req, res) => {
+  var postid = req.body.postid;
+  var type = req.body.type;
+  var query;
+  if (type === 'message') {
+    query = `UPDATE posts SET downvotes = downvotes + 1 WHERE id = ?`;
+  } else {
+    query = `UPDATE replies SET downvotes = downvotes + 1 WHERE id = ?`;
+  }
+
+  connection.query(query, [postid], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Downvote count updated successfully');
+  });
+});
+
+app.post('/deleteUser', (req, res) => {
+  var username = req.body.username;
+  const query = `DELETE FROM users WHERE username = ?`;
+
+  connection.query(query, [username], function (error, results, fields) {
+    if (error) throw error;
+    console.log('User deleted successfully');
+  });
+});
+
+app.post('/deleteChannel', (req, res) => {
+  var id = req.body.id;
+  const query = `DELETE FROM channels WHERE id = ?`;
+
+  connection.query(query, [id], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Channel deleted successfully');
+  });
+});
+
+app.post('/deleteMessage', (req, res) => {
+  var id = req.body.id;
+  const query = `DELETE FROM posts WHERE id = ?`;
+
+  connection.query(query, [id], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Message deleted successfully');
+  });
+});
+
+app.post('/deleteReply', (req, res) => {
+  var id = req.body.id;
+  const query = `DELETE FROM replies WHERE id = ?`;
+
+  connection.query(query, [id], function (error, results, fields) {
+    if (error) throw error;
+    console.log('Message deleted successfully');
+  });
+});
+
 var theQuery = `SELECT * FROM users`;
 connection.query(theQuery, function (err, result) {
   if (err) console.log(err);
-  console.log(JSON.stringify(result));
+  // console.log(JSON.stringify(result));
 });
-console.log('made replies table');
 
 app.listen(PORT, () => {
   console.log(`Server running on port http://localhost:${PORT}`);

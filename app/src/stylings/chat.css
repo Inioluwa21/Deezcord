@@ -1,0 +1,15 @@
+.chat-page {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
+.side-bar {
+  width: 20%;
+  background-color: rgb(119, 113, 113);
+}
+
+.message-history {
+  flex: 1;
+  background-color: white;
+}
