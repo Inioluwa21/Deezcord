@@ -5,6 +5,8 @@ import RegisterPage from './pages/RegisterPage';
 import SignInPage from './pages/SignInPage';
 import ChatPage from './pages/ChatPage';
 import { AuthProvider } from './AuthContext';
+import AdminPage from './pages/AdminPage';
+import SearchPage from './pages/SearchPage';
 function App() {
   return (
     <Router>
@@ -14,6 +16,8 @@ function App() {
           <Route path="/Register" element={<RegisterPage />} />
           <Route path="/Signin" element={<SignInPage />} />
           <Route path="/Chat" element={<ChatPage />} />
+          <Route path="/Admin" element={<AdminPage />} />
+          <Route path="/Search" element={<SearchPage />} />
         </Routes>
       </AuthProvider>
     </Router>
