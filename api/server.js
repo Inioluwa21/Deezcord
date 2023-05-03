@@ -5,7 +5,7 @@ const fs = require('fs');
 app.use(bodyParser.urlencoded({ extended: true }));
 console.log('starting....');
 const cors = require('cors');
-
+const PORT = 8000;
 // **** Set basic express settings **** //
 
 var currentChannel = '';
@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 var mysql = require('mysql');
-const PORT = 8000;
+
 var connection = mysql.createConnection({
   host: 'mysql1',
   user: 'root',
@@ -43,26 +43,6 @@ function createDB() {
 }
 createDB();
 
-// var query = `
-// DROP TABLE users
-// `;
-
-// connection.query(query, (error, results) => {
-//   if (error) {
-//     console.error('Error deleting tables:', error);
-//     return;
-//   }
-//   console.log(`Deleted ${results.length} tables`);
-// });
-
-// connection.query(`SELECT * FROM users`, (error, result) => {
-//   if (error) {
-//     checkIfAdminExists = false; // this means that the table has not been created yet, hence no admin
-//     console.log('GOT TO THIS USERS PART');
-//   } else {
-//     checkIfAdminExists = true;
-//   }
-// });
 function createUsersTable() {
   connection.query(
     `CREATE TABLE IF NOT EXISTS users
@@ -79,7 +59,6 @@ PRIMARY KEY (id)
 }
 
 async function createPostsTable() {
-  // await connection.query('DROP TABLE IF EXISTS posts');
   connection.query(
     `CREATE TABLE IF NOT EXISTS posts
 ( id int unsigned NOT NULL auto_increment,
@@ -97,7 +76,6 @@ PRIMARY KEY (id)
 }
 
 async function createRepliesTable() {
-  // await connection.query('DROP TABLE IF EXISTS replies');
   connection.query(
     `CREATE TABLE IF NOT EXISTS replies
 ( id int unsigned NOT NULL auto_increment,
@@ -114,7 +92,7 @@ PRIMARY KEY (id)
   createChannelsTable();
 }
 
-function createChannelsTable() {
+async function createChannelsTable() {
   connection.query(
     `CREATE TABLE IF NOT EXISTS channels
     ( id int unsigned NOT NULL auto_increment, name varchar(30)
@@ -198,23 +176,19 @@ app.get('/searchMessage', (req, res) => {
   var searchString = req.body.searchString;
   var searchValue = `%${searchString}%`;
   var finalResult;
-  var theQuery = `SELECT * FROM posts WHERE data LIKE ?`;
-  connection.query(theQuery, [searchValue], function (err, result) {
+  var theQuery = `SELECT * FROM posts`;
+  connection.query(theQuery, function (err, result) {
     if (err) console.log(err);
-    // res.send(JSON.stringify(result));
-    finalResult += result;
-    console.log(JSON.stringify(result));
+    res.send(JSON.stringify(result));
   });
+});
 
-  var theQuery2 = `SELECT * FROM replies WHERE data LIKE ?`;
-  connection.query(theQuery2, [searchValue], function (err, result) {
+app.get('/searchReplies', (req, res) => {
+  var theQuery = `SELECT * FROM replies`;
+  connection.query(theQuery, function (err, result) {
     if (err) console.log(err);
-    // res.send(JSON.stringify(result));
-    finalResult += result;
-    console.log(JSON.stringify(result));
+    res.send(JSON.stringify(result));
   });
-
-  res.send(finalResult);
 });
 
 app.get('/searchUser', (req, res) => {
@@ -374,7 +348,7 @@ app.post('/deleteReply', (req, res) => {
 var theQuery = `SELECT * FROM users`;
 connection.query(theQuery, function (err, result) {
   if (err) console.log(err);
-  console.log(JSON.stringify(result));
+  // console.log(JSON.stringify(result));
 });
 
 app.listen(PORT, () => {
