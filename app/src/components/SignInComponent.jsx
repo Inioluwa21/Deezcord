@@ -28,15 +28,20 @@ function SignInComponent() {
     };
 
     axios.post('http://localhost:81/login', userInfo).then((response) => {
-      alert(response.data);
       if (response.data === 'none') {
         alert('Incorrect username or password');
       } else {
         const theUserId = response.data.map((users) => [users.id]);
         const theUserName = response.data.map((users) => [users.username]);
-        alert('the: ' + theUserId);
+        const theUserAuthorityLevel = response.data.map((users) => [
+          users.authoritylevel,
+        ]);
         storeUser(theUserId, theUserName);
-        navigate('/Chat');
+        if (theUserAuthorityLevel > 0) {
+          navigate('/Admin');
+        } else {
+          navigate('/Chat');
+        }
       }
     });
   }
