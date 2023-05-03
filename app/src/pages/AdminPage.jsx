@@ -6,7 +6,7 @@ function AdminPage() {
   return (
     <div className="chat-page">
       <div className="side-bar">
-        <h1>DEEZCORD</h1>
+        <h1>DEEZCORD ADMIN</h1>
         <AdminSideBar />
       </div>
       <div className="message-history">

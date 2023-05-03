@@ -39,11 +39,11 @@ function RegisterComponent() {
               placeholder="Password"
             />
           </div>
-          <button className="signInButton" onClick={registerAUser}>
-            {' '}
-            Enter
-          </button>
         </form>
+        <button className="signInButton" onClick={registerAUser}>
+          {' '}
+          Enter
+        </button>
       </div>
     </div>
   );
